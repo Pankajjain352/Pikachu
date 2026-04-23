@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Results – SRMS</title>
+  <meta name="description" content="View student results with marks, percentage, and grade" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="s-logo"><i class="fas fa-graduation-cap"></i></div>
+        <span class="s-title">SRMS</span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-label">Main</div>
+        <a href="dashboard.html" class="nav-item">
+          <i class="fas fa-chart-pie"></i> Dashboard
+        </a>
+        <a href="add_student.html" class="nav-item">
+          <i class="fas fa-user-plus"></i> Add Student
+        </a>
+        <a href="view_students.html" class="nav-item">
+          <i class="fas fa-users"></i> View Students
+        </a>
+        <div class="nav-label">Reports</div>
+        <a href="result.html" class="nav-item active">
+          <i class="fas fa-file-lines"></i> Results
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="index.html" class="nav-item" onclick="sessionStorage.clear()">
+          <i class="fas fa-right-from-bracket"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="main-wrapper">
+
+      <header class="top-header">
+        <div class="left">
+          <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+          <h1 class="page-title">Student Results</h1>
+        </div>
+        <div class="right">
+          <div class="admin-badge">
+            <div class="avatar">AD</div>
+            <span class="name">Admin</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="page-content">
+
+        <!-- Search Area -->
+        <div class="content-card">
+          <div class="card-body">
+            <div class="result-search-area">
+              <h2><i class="fas fa-search" style="color: var(--primary-light); margin-right: 8px;"></i>Search Student Result</h2>
+              <p>Enter the student's roll number to view their detailed result</p>
+              <div class="result-search-form">
+                <input type="text" id="resultRollInput" placeholder="Enter Roll Number (e.g. 2024001)" />
+                <button class="btn btn-primary" id="searchResultBtn" style="width: auto;">
+                  <i class="fas fa-search"></i> Search
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result Card (hidden initially) -->
+        <div id="resultArea" class="hidden mt-3">
+          <div class="result-card-container">
+            <div class="result-card">
+
+              <!-- Header -->
+              <div class="result-card-header">
+                <h3 id="resultName">—</h3>
+                <p id="resultMeta">—</p>
+              </div>
+
+              <!-- Info Grid -->
+              <div class="result-info-grid">
+                <div class="result-info-item">
+                  <div class="label">Roll Number</div>
+                  <div class="value" id="resultRoll">—</div>
+                </div>
+                <div class="result-info-item">
+                  <div class="label">Class & Section</div>
+                  <div class="value" id="resultClass">—</div>
+                </div>
+                <div class="result-info-item">
+                  <div class="label">Exam</div>
+                  <div class="value">Annual Examination 2026</div>
+                </div>
+                <div class="result-info-item">
+                  <div class="label">Status</div>
+                  <div class="value" id="resultStatus">—</div>
+                </div>
+              </div>
+
+              <!-- Marks Table -->
+              <div class="result-marks-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Subject</th>
+                      <th>Max Marks</th>
+                      <th>Obtained</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="resultMarksBody">
+                    <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Summary -->
+              <div class="result-summary">
+                <div class="result-summary-item">
+                  <div class="s-label">Total Marks</div>
+                  <div class="s-value primary" id="resultTotal">—</div>
+                </div>
+                <div class="result-summary-item">
+                  <div class="s-label">Percentage</div>
+                  <div class="s-value success" id="resultPercent">—</div>
+                </div>
+                <div class="result-summary-item">
+                  <div class="s-label">Grade</div>
+                  <div class="s-value accent" id="resultGrade">—</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Print -->
+            <button class="btn btn-secondary print-btn mt-2" onclick="window.print()">
+              <i class="fas fa-print"></i> Print Result
+            </button>
+          </div>
+        </div>
+
+        <!-- Not found state -->
+        <div id="notFoundArea" class="hidden mt-3">
+          <div class="content-card">
+            <div class="card-body">
+              <div class="empty-state">
+                <i class="fas fa-user-slash"></i>
+                <h3>Student Not Found</h3>
+                <p>No student found with the given roll number. Please check and try again.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      <footer class="app-footer">
+        <p>&copy; 2026 SRMS – Student Result Management System</p>
+        <p>Crafted with <i class="fas fa-heart" style="color: var(--accent);"></i> by Admin</p>
+      </footer>
+
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="script.js"></script>
+  <script>
+    checkAuth();
+
+    const searchBtn = document.getElementById('searchResultBtn');
+    const rollInput = document.getElementById('resultRollInput');
+    const resultArea = document.getElementById('resultArea');
+    const notFoundArea = document.getElementById('notFoundArea');
+
+    // Subject label map
+    const subjectLabels = {
+      math: 'Mathematics',
+      science: 'Science',
+      english: 'English',
+      hindi: 'Hindi',
+      socialScience: 'Social Science'
+    };
+
+    function showResult(roll) {
+      const students = getStudents();
+      const student = students.find(s => s.roll === roll.trim());
+
+      if (!student) {
+        resultArea.classList.add('hidden');
+        notFoundArea.classList.remove('hidden');
+        return;
+      }
+
+      notFoundArea.classList.add('hidden');
+      resultArea.classList.remove('hidden');
+
+      // Populate header
+      document.getElementById('resultName').textContent = student.name;
+      document.getElementById('resultMeta').textContent = `Class ${student.class} – Section ${student.section || 'A'}`;
+      document.getElementById('resultRoll').textContent = student.roll;
+      document.getElementById('resultClass').textContent = `${student.class} – ${student.section || 'A'}`;
+
+      const passed = student.percentage >= 50;
+      const statusEl = document.getElementById('resultStatus');
+      statusEl.innerHTML = `<span class="badge ${passed ? 'badge-success' : 'badge-danger'}">${passed ? 'PASSED' : 'FAILED'}</span>`;
+
+      // Marks table
+      const marksBody = document.getElementById('resultMarksBody');
+      marksBody.innerHTML = Object.entries(student.marks).map(([key, val]) => {
+        const subPass = val >= 33;
+        return `
+          <tr>
+            <td style="color: var(--text-primary); font-weight: 500;">${subjectLabels[key] || key}</td>
+            <td>100</td>
+            <td style="font-weight: 600; color: ${subPass ? 'var(--success)' : 'var(--danger)'};">${val}</td>
+            <td><span class="badge ${subPass ? 'badge-success' : 'badge-danger'}">${subPass ? 'Pass' : 'Fail'}</span></td>
+          </tr>
+        `;
+      }).join('');
+
+      // Summary
+      document.getElementById('resultTotal').textContent = `${student.total} / 500`;
+      document.getElementById('resultPercent').textContent = `${student.percentage}%`;
+      document.getElementById('resultGrade').textContent = student.grade;
+
+      // Scroll to result
+      resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    searchBtn.addEventListener('click', () => {
+      const roll = rollInput.value.trim();
+      if (!roll) {
+        showToast('Please enter a roll number.', 'error');
+        return;
+      }
+      showResult(roll);
+    });
+
+    rollInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        searchBtn.click();
+      }
+    });
+
+    // Auto-search if roll comes from URL query
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const roll = params.get('roll');
+      if (roll) {
+        rollInput.value = roll;
+        showResult(roll);
+      }
+    })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – SRMS</title>
+  <meta name="description" content="Admin Dashboard – Student Result Management System" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app-layout">
+
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="s-logo"><i class="fas fa-graduation-cap"></i></div>
+        <span class="s-title">SRMS</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-label">Main</div>
+        <a href="dashboard.html" class="nav-item active">
+          <i class="fas fa-chart-pie"></i> Dashboard
+        </a>
+        <a href="add_student.html" class="nav-item">
+          <i class="fas fa-user-plus"></i> Add Student
+        </a>
+        <a href="view_students.html" class="nav-item">
+          <i class="fas fa-users"></i> View Students
+        </a>
+
+        <div class="nav-label">Reports</div>
+        <a href="result.html" class="nav-item">
+          <i class="fas fa-file-lines"></i> Results
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="index.html" class="nav-item" onclick="sessionStorage.clear()">
+          <i class="fas fa-right-from-bracket"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <!-- Sidebar overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <div class="main-wrapper">
+
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="left">
+          <button class="hamburger" id="hamburgerBtn">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h1 class="page-title">Dashboard</h1>
+        </div>
+        <div class="right">
+          <div class="admin-badge">
+            <div class="avatar">AD</div>
+            <span class="name">Admin</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main class="page-content">
+
+        <!-- Stats Row -->
+        <section class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon purple"><i class="fas fa-user-graduate"></i></div>
+            <div class="stat-value" id="totalStudents">156</div>
+            <div class="stat-label">Total Students</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+            <div class="stat-value" id="passCount">132</div>
+            <div class="stat-label">Students Passed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon pink"><i class="fas fa-circle-xmark"></i></div>
+            <div class="stat-value" id="failCount">24</div>
+            <div class="stat-label">Students Failed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon yellow"><i class="fas fa-trophy"></i></div>
+            <div class="stat-value" id="avgPercent">72.4%</div>
+            <div class="stat-label">Average Percentage</div>
+          </div>
+        </section>
+
+        <!-- Quick Info Grid -->
+        <section class="quick-grid">
+
+          <!-- Recent Students Card -->
+          <div class="content-card">
+            <div class="card-header">
+              <h2><i class="fas fa-clock-rotate-left"></i> Recently Added</h2>
+              <a href="view_students.html" class="btn btn-secondary btn-sm">View All</a>
+            </div>
+            <div class="card-body">
+              <div class="recent-list" id="recentList">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Grade Distribution Card -->
+          <div class="content-card">
+            <div class="card-header">
+              <h2><i class="fas fa-chart-bar"></i> Grade Distribution</h2>
+            </div>
+            <div class="card-body">
+              <div class="grade-bar-container">
+                <div class="grade-bar-label"><span>A+ (90–100%)</span><span>18%</span></div>
+                <div class="grade-bar"><div class="fill a-plus" style="width: 18%"></div></div>
+              </div>
+              <div class="grade-bar-container">
+                <div class="grade-bar-label"><span>A (80–89%)</span><span>25%</span></div>
+                <div class="grade-bar"><div class="fill a" style="width: 25%"></div></div>
+              </div>
+              <div class="grade-bar-container">
+                <div class="grade-bar-label"><span>B (65–79%)</span><span>30%</span></div>
+                <div class="grade-bar"><div class="fill b" style="width: 30%"></div></div>
+              </div>
+              <div class="grade-bar-container">
+                <div class="grade-bar-label"><span>C (50–64%)</span><span>15%</span></div>
+                <div class="grade-bar"><div class="fill c" style="width: 15%"></div></div>
+              </div>
+              <div class="grade-bar-container">
+                <div class="grade-bar-label"><span>Fail (&lt;50%)</span><span>12%</span></div>
+                <div class="grade-bar"><div class="fill f" style="width: 12%"></div></div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <p>&copy; 2026 SRMS – Student Result Management System</p>
+        <p>Crafted with <i class="fas fa-heart" style="color: var(--accent);"></i> by Admin</p>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="script.js"></script>
+  <script>
+    // ---- Auth Guard ----
+    checkAuth();
+
+    // ---- Populate recent students ----
+    (function () {
+      const students = getStudents();
+      const recent = students.slice(-5).reverse();
+      const list = document.getElementById('recentList');
+
+      if (recent.length === 0) {
+        list.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><h3>No students yet</h3><p>Add your first student to get started.</p></div>';
+        return;
+      }
+
+      const colors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6'];
+      list.innerHTML = recent.map((s, i) => {
+        const initials = s.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+        return `
+          <div class="recent-item">
+            <div class="r-avatar" style="background: ${colors[i % colors.length]}">${initials}</div>
+            <div class="r-info">
+              <h4>${s.name}</h4>
+              <p>Roll No: ${s.roll} &bull; ${s.percentage}% &bull; Grade ${s.grade}</p>
+            </div>
+            <span class="badge ${s.percentage >= 50 ? 'badge-success' : 'badge-danger'}">${s.percentage >= 50 ? 'Pass' : 'Fail'}</span>
+          </div>
+        `;
+      }).join('');
+
+      // Update dashboard stats
+      const total = students.length;
+      const passed = students.filter(s => s.percentage >= 50).length;
+      const failed = total - passed;
+      const avg = total > 0 ? (students.reduce((a, s) => a + s.percentage, 0) / total).toFixed(1) : 0;
+
+      document.getElementById('totalStudents').textContent = total;
+      document.getElementById('passCount').textContent = passed;
+      document.getElementById('failCount').textContent = failed;
+      document.getElementById('avgPercent').textContent = avg + '%';
+    })();
+  </script>
+
+</body>
+</html>

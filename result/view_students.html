@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View Students – SRMS</title>
+  <meta name="description" content="View and manage all students" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="s-logo"><i class="fas fa-graduation-cap"></i></div>
+        <span class="s-title">SRMS</span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-label">Main</div>
+        <a href="dashboard.html" class="nav-item">
+          <i class="fas fa-chart-pie"></i> Dashboard
+        </a>
+        <a href="add_student.html" class="nav-item">
+          <i class="fas fa-user-plus"></i> Add Student
+        </a>
+        <a href="view_students.html" class="nav-item active">
+          <i class="fas fa-users"></i> View Students
+        </a>
+        <div class="nav-label">Reports</div>
+        <a href="result.html" class="nav-item">
+          <i class="fas fa-file-lines"></i> Results
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="index.html" class="nav-item" onclick="sessionStorage.clear()">
+          <i class="fas fa-right-from-bracket"></i> Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="main-wrapper">
+
+      <header class="top-header">
+        <div class="left">
+          <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+          <h1 class="page-title">View Students</h1>
+        </div>
+        <div class="right">
+          <div class="admin-badge">
+            <div class="avatar">AD</div>
+            <span class="name">Admin</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="page-content">
+
+        <div class="content-card">
+          <div class="card-header">
+            <h2><i class="fas fa-users"></i> All Students</h2>
+            <a href="add_student.html" class="btn btn-success btn-sm">
+              <i class="fas fa-plus"></i> Add New
+            </a>
+          </div>
+          <div class="card-body">
+
+            <!-- Toolbar -->
+            <div class="table-toolbar">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search by name, roll, or class..." />
+              </div>
+              <select id="filterClass" style="padding:10px 14px; background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-md); color:var(--text-primary); font-size:0.88rem; appearance:none; background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E&quot;); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px;">
+                <option value="">All Classes</option>
+                <option value="10th">10th</option>
+                <option value="11th">11th</option>
+                <option value="12th">12th</option>
+              </select>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrapper">
+              <table class="data-table" id="studentsTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Roll No</th>
+                    <th>Class</th>
+                    <th>Total</th>
+                    <th>Percentage</th>
+                    <th>Grade</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="studentsBody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty state (shown when no data) -->
+            <div class="empty-state hidden" id="emptyState">
+              <i class="fas fa-inbox"></i>
+              <h3>No students found</h3>
+              <p>Try adjusting your search or add new students.</p>
+            </div>
+
+          </div>
+        </div>
+
+      </main>
+
+      <footer class="app-footer">
+        <p>&copy; 2026 SRMS – Student Result Management System</p>
+        <p>Crafted with <i class="fas fa-heart" style="color: var(--accent);"></i> by Admin</p>
+      </footer>
+
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="script.js"></script>
+  <script>
+    checkAuth();
+
+    // ---- Render table ----
+    function renderTable(filter = '', classFilter = '') {
+      const students = getStudents();
+      const tbody = document.getElementById('studentsBody');
+      const empty = document.getElementById('emptyState');
+      const table = document.getElementById('studentsTable');
+
+      // Filter
+      const lf = filter.toLowerCase();
+      const filtered = students.filter(s => {
+        const matchSearch = !lf ||
+          s.name.toLowerCase().includes(lf) ||
+          s.roll.toLowerCase().includes(lf) ||
+          s.class.toLowerCase().includes(lf);
+        const matchClass = !classFilter || s.class === classFilter;
+        return matchSearch && matchClass;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '';
+        table.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      table.classList.remove('hidden');
+      empty.classList.add('hidden');
+
+      tbody.innerHTML = filtered.map((s, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td style="color: var(--text-primary); font-weight: 500;">${s.name}</td>
+          <td>${s.roll}</td>
+          <td><span class="badge badge-primary">${s.class} – ${s.section || 'A'}</span></td>
+          <td>${s.total}/500</td>
+          <td style="font-weight: 600; color: ${s.percentage >= 80 ? 'var(--success)' : s.percentage >= 50 ? 'var(--warning)' : 'var(--danger)'};">${s.percentage}%</td>
+          <td><span class="badge ${s.percentage >= 80 ? 'badge-success' : s.percentage >= 50 ? 'badge-warning' : 'badge-danger'}">${s.grade}</span></td>
+          <td><span class="badge ${s.percentage >= 50 ? 'badge-success' : 'badge-danger'}">${s.percentage >= 50 ? 'Pass' : 'Fail'}</span></td>
+          <td>
+            <div class="action-btns">
+              <button class="action-btn" title="View Result" onclick="window.location.href='result.html?roll=${s.roll}'">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="action-btn delete" title="Delete" onclick="deleteStudent('${s.roll}')">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // ---- Delete student ----
+    function deleteStudent(roll) {
+      if (!confirm('Are you sure you want to delete this student?')) return;
+      let students = getStudents();
+      students = students.filter(s => s.roll !== roll);
+      saveStudents(students);
+      renderTable(
+        document.getElementById('searchInput').value,
+        document.getElementById('filterClass').value
+      );
+      showToast('Student deleted successfully.', 'info');
+    }
+
+    // ---- Search & Filter events ----
+    document.getElementById('searchInput').addEventListener('input', function () {
+      renderTable(this.value, document.getElementById('filterClass').value);
+    });
+
+    document.getElementById('filterClass').addEventListener('change', function () {
+      renderTable(document.getElementById('searchInput').value, this.value);
+    });
+
+    // Initial render
+    renderTable();
+  </script>
+
+</body>
+</html>
